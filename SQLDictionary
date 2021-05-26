@@ -1,0 +1,106 @@
+//CROSS JOIN
+//Returns every possible combination of rows from the left and right tables
+//Like an outer join with no conditions for joining
+
+SELECT p1.product_id, p1.model, p2.product_id, p2.model
+FROM products p1
+CROSS JOIN products p2;
+
+
+//Find all customers who bought a car and have a valid phone number
+
+SELECT c.customer_id, c.first_name, c.last_name, c.phone
+FROM sales s
+INNER JOIN customers c
+ON c.customer_id=s.customer_id
+INNER JOIN products p ON p.product_id=s.product_id
+WHERE p.product_type='automobile'
+AND c.phone IS NOT NULL;
+
+//Subqueries
+
+SELECT *
+FROM salespeople
+INNER JOIN (
+SELECT * FROM dealerships
+WHERE dealerships.state ='CA') d
+ON d.dealership_id = salespeople.dealership_id
+ORDER BY 1;
+
+//If the query only has one column for the subquery, use the WHERE clause in the keyword
+
+SELECT *
+FROM salespeople
+WHERE dealership_id IN (
+SELECT dealership_id FROM dealerships
+WHERE dealerships.state = 'CA')
+ORDER BY 1;
+
+//Union - adding data horizontally
+
+(SELECT street_address, city, state, postal_code
+FROM customers
+WHERE street_address IS NOT NULL
+)
+UNION
+(SELECT street_address, city, state, postal_code
+FROM dealerships
+WHERE street_address IS NOT NULL
+)
+ORDER BY 1;
+
+
+UNION customers and employees, and finding employees with an inner join that are in LA
+(SELECT first_name, last_name, 'Customer' as guest_type
+FROM customers
+WHERE city = 'Los Angeles'
+AND state = 'CA'
+)
+UNION
+(SELECT first_name, last_name, 'Employee' as guest_type
+FROM salespeople s
+INNER JOIN dealerships d on d.dealership_id=s.dealership_id
+WHERE d.city = 'Los Angeles'
+AND d.state='CA'
+)
+ORDER BY 1;
+
+
+//Common Table Expressions (CTE)
+//Like subqueries, CTE establish temporary tables by using the WITH clause
+//CTE are recursive, they can reference themselves
+WITH d AS (
+SELECT * FROM dealerships
+WHERE dealerships.state='CA')
+SELECT *
+FROM salespeople
+INNER JOIN d on d.dealership_id = salespeople.dealership_id
+ORDER BY 1;
+
+
+//CASE WHEN (If else)
+SELECT c.customer_id,
+CASE WHEN c.state IN ('MA', 'NH', 'VT') THEN 'New England'
+WHEN c.state IN ('GA', 'FL', 'MS') THEN 'SouthEast'
+ELSE 'Other' END
+AS region
+FROM customers c
+ORDER BY 1;
+
+
+//COALESCE
+//Replace null values with a standard value, if the first value is null, fill with the 2nd value, it will continue down until a non-null value
+//If all values are null, then the function returns a null
+//Replace null values with "no phone"
+//Good for creating default values avoiding null
+SELECT first_name, last_name,
+COALESCE(phone, 'No Phone') as phone
+FROM customers
+ORDER BY 1;
+
+//NULLIF
+//Opposite of Coalesce, returns null if the first value equals the second value
+//Replace certain words with a NULL
+SELECT customer_id,
+NULLIF(title, 'Honorable') as title
+FROM customers
