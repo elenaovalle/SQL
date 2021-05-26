@@ -104,3 +104,108 @@ ORDER BY 1;
 SELECT customer_id,
 NULLIF(title, 'Honorable') as title
 FROM customers
+
+GROUP BY
+SELECT nerc_region, SUM(demand_loss_mw) AS demand_loss
+FROM grid
+WHERE demand_loss_mw IS NOT NULL
+GROUP BY nerc_region
+ORDER BY demand_loss DESC
+
+//Try to remember that WHERE is applied before GROUP BY and filters on rows. HAVING is applied after GROUP BY, and filters on the groups or aggregates you created within the query.
+HAVING
+SELECT
+nerc_region,
+SUM (demand_loss_mw) AS demand_loss
+FROM
+grid
+-- Remove the WHERE clause
+
+GROUP BY
+nerc_region
+-- Enter a new HAVING clause so that the sum of demand_loss_mw is greater than 10000
+HAVING
+SUM(demand_loss_mw) > 10000
+ORDER BY
+demand_loss DESC;
+A WHERE clause wouldn't work because we are applying the filter based on an aggregate value - in this example, the count of entries by each country. That completes this chapter. Now we move on to learning how to SELECT data from more than one table
+HAVING
+SELECT
+country,
+COUNT (country) AS country_count,
+AVG (place) AS avg_place,
+AVG (points) AS avg_points,
+MIN (points) AS min_points,
+MAX (points) AS max_points
+FROM
+eurovision
+GROUP BY
+country
+-- The country column should only contain those with a count greater than 5
+HAVING
+COUNT(country) > 5
+-- Arrange columns in the correct order
+ORDER BY
+avg_place,
+avg_points DESC;
+
+
+
+//HAVING a great time
+//In SQL, aggregate functions can't be used in WHERE clauses. For example, the following query is invalid:
+
+SELECT release_year
+FROM films
+GROUP BY release_year
+WHERE COUNT(title) > 10;
+This means that if you want to filter based on the result of an aggregate function, you need another way! That's where the HAVING clause comes in. For example,
+SELECT release_year
+FROM films
+GROUP BY release_year
+HAVING COUNT(title) > 10;
+shows only those years in which more than 10 films were released.
+
+
+SELECT release_year, AVG(budget)
+AS avg_budget, AVG(gross) AS avg_gross
+FROM films
+WHERE (release_year = 2004 OR release_year = 2005)
+GROUP BY release_year
+HAVING AVG(budget) > 60000000;
+
+
+SELECT release_year, AVG(budget)
+AS avg_budget, AVG(gross) AS avg_gross
+FROM films
+WHERE release_year > 1990
+GROUP BY release_year
+HAVING AVG(budget) > 60000000
+
+
+SELECT country, AVG(budget) AS avg_budget, AVG(gross) AS avg_gross
+Get the country, average budget, and average gross take of countries that have made more than 10 films. Order the result by country name, and limit the number of results displayed to 5. You should alias the averages as avg_budget and avg_gross respectively.
+GROUP BY country
+HAVING COUNT(title) > 10
+ORDER BY country
+LIMIT 5;
+
+//CASE WHEN
+//Simple Case
+SELECT Name,
+CASE Size
+WHEN 'S' THEN 'Small'
+WHEN 'M' THEN 'Medium
+--etc.
+ELSE ISNULL(Size, 'n/a')
+END AS ProductSize
+FROM SalesLT.Product;
+
+//Max Cast
+Select FirstName, LastName, SSN
+, Max(Cast(ApplyLWSD as int)) as LWSD
+,  Max(Cast(ApplyDisabled as int)) as Disability
+, Max(Cast(ApplyElderly as int)) as Elderly
+, Max(Cast(ApplyFamily as int)) as Family
+, Max(Cast(ApplyVAM as int)) as VAM
+From WaitListApplication
+Group By FirstName, LastName, SSN
